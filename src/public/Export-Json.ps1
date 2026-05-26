@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Exports a portion of a JSON document, recursively importing references.
 
@@ -23,10 +23,10 @@ https://www.rfc-editor.org/rfc/rfc6901
 https://github.com/MicrosoftDocs/PowerShell-Docs/pull/9042
 
 .LINK
-Select-Json.ps1
+Select-Json
 
 .EXAMPLE
-'{d:{a:{b:1,c:{"$ref":"#/d/two"}},two:2}}' |Export-Json.ps1 /d/a
+'{d:{a:{b:1,c:{"$ref":"#/d/two"}},two:2}}' |Export-Json /d/a
 
 {
   "b": 1,
@@ -34,12 +34,11 @@ Select-Json.ps1
 }
 
 .EXAMPLE
-'{d:{a:{b:1,c:{"$ref":"#/d/c"}},c:{d:{"$ref":"#/d/two"}},two:2}}' |Export-Json.ps1 /d/a -Compress
+'{d:{a:{b:1,c:{"$ref":"#/d/c"}},c:{d:{"$ref":"#/d/two"}},two:2}}' |Export-Json /d/a -Compress
 
 {"b":1,"c":{"d":2}}
 #>
 
-#Requires -Version 7
 [CmdletBinding()][OutputType([string])] Param(
 <#
 The full path name of the property to get, as a JSON Pointer, modified to support wildcards:
@@ -67,7 +66,7 @@ Begin
 			{$_.IsFile} {(Get-Content $_.LocalPath -Raw |ConvertFrom-Json -AsHashtable),($_.Fragment -replace '\A*')}
 			default {(Invoke-RestMethod $ReferenceUri),($_.Fragment -replace '\A#')}
 		}
-		return $source |Select-Json.ps1 $pointer |Import-Reference -Root $source
+		return $source |Select-Json $pointer |Import-Reference -Root $source
 	}
 
 	filter Import-Reference
@@ -105,13 +104,13 @@ Begin
 	{
 		return Resolve-Path -Path $Path |
 			ForEach-Object {$_ |Get-Content -Raw |
-				Export-Json.ps1 -JsonPointer $JsonPointer -Compress:$Compress}
+				Export-Json -JsonPointer $JsonPointer -Compress:$Compress}
 
 	}
 }
 End
 {
 	$root = $InputObject -is [string] ? ($InputObject |ConvertFrom-Json -AsHashtable) : $InputObject
-	$selection = $root |Select-Json.ps1 $JsonPointer
+	$selection = $root |Select-Json $JsonPointer
 	return $selection |Import-Reference -Root $root |ConvertTo-Json -Depth 100 -Compress:$Compress
 }

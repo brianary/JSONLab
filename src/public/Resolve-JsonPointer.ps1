@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Returns matching JSON Pointer paths, given a JSON Pointer path with wildcards.
 
@@ -20,37 +20,37 @@ https://www.rfc-editor.org/rfc/rfc6901
 ConvertFrom-Json
 
 .EXAMPLE
-'{a:1}' |Resolve-JsonPointer.ps1 /*
+'{a:1}' |Resolve-JsonPointer /*
 
 /a
 
 .EXAMPLE
-'[8, 7, 6]' |Resolve-JsonPointer.ps1 /-
+'[8, 7, 6]' |Resolve-JsonPointer /-
 
 /3
 
 .EXAMPLE
-Resolve-JsonPointer.ps1 /powershell.*.preset -Path ./.vscode/settings.json
+Resolve-JsonPointer /powershell.*.preset -Path ./.vscode/settings.json
 
 /powershell.codeFormatting.preset
 
 .EXAMPLE
-'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": 7}}}' |Resolve-JsonPointer.ps1 /*/ZZ?ZZ/AD?BC
+'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": 7}}}' |Resolve-JsonPointer /*/ZZ?ZZ/AD?BC
 
 /b/ZZ~1ZZ/AD~0BC
 
 .EXAMPLE
-'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": 7}}}' |Resolve-JsonPointer.ps1 /[bc]/ZZ?ZZ
+'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": 7}}}' |Resolve-JsonPointer /[bc]/ZZ?ZZ
 
 /b/ZZ~1ZZ
 
 .EXAMPLE
-'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": [7, 8, 9]}}}' |ConvertFrom-Json |Resolve-JsonPointer.ps1 /?/ZZ*/*BC/-
+'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": [7, 8, 9]}}}' |ConvertFrom-Json |Resolve-JsonPointer /?/ZZ*/*BC/-
 
 /b/ZZ~1ZZ/AD~0BC/3
 
 .EXAMPLE
-Resolve-JsonPointer.ps1 /* -Path .\test\data\sample-openapi.json -IncludePath
+Resolve-JsonPointer /* -Path .\test\data\sample-openapi.json -IncludePath
 
 Path                                     Pointer
 ----                                     -------
@@ -61,7 +61,6 @@ A:\Scripts\test\data\sample-openapi.json /paths
 A:\Scripts\test\data\sample-openapi.json /components
 #>
 
-#Requires -Version 7
 [CmdletBinding()][OutputType([string])] Param(
 <#
 The full path name of the property to get, as a JSON Pointer, modified to support wildcards:

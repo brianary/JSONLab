@@ -12,16 +12,13 @@ System.String of JSON combining the inputs.
 Json
 
 .LINK
-Merge-PSObject.ps1
-
-.LINK
 ConvertFrom-Json
 
 .LINK
 ConvertTo-Json
 
 .EXAMPLE
-'{"a":1,"b":{"u":3},"c":{"v":5}}','{"a":{"w":8},"b":2,"c":{"x":6}}' |Merge-Json.ps1
+'{"a":1,"b":{"u":3},"c":{"v":5}}','{"a":{"w":8},"b":2,"c":{"x":6}}' |Merge-Json
 
 {
     "a":  {
@@ -35,7 +32,6 @@ ConvertTo-Json
 }
 #>
 
-#Requires -Version 3
 [CmdletBinding()][OutputType([string])] Param(
 <#
 JSON string to combine. Descendant properties are recursively merged.
@@ -46,5 +42,6 @@ Primitive values are overwritten by any matching ones in the new JSON string.
 [switch]$Compress
 )
 Begin {$value = [pscustomobject]@{}}
+#TODO: Add or replace dependency.
 Process {$value = $value,($InputObject |ConvertFrom-Json) |Merge-PSObject.ps1}
 End {$value  |ConvertTo-Json -Compress:$Compress}

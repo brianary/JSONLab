@@ -24,19 +24,19 @@ ConvertTo-Json
 Add-Member
 
 .EXAMPLE
-'0' |Set-Json.ps1 -PropertyValue $true
+'0' |Set-Json -PropertyValue $true
 
 true
 
 .EXAMPLE
-'{}' |Set-Json.ps1 / $false
+'{}' |Set-Json / $false
 
 {
   "": false
 }
 
 .EXAMPLE
-'{}' |Set-Json.ps1 /~1/~0 3.14
+'{}' |Set-Json /~1/~0 3.14
 
 {
   "/": {
@@ -45,7 +45,7 @@ true
 }
 
 .EXAMPLE
-'[1, 2, 3]' |Set-Json.ps1 /1 0
+'[1, 2, 3]' |Set-Json /1 0
 
 [
   1,
@@ -54,7 +54,7 @@ true
 ]
 
 .EXAMPLE
-'[1, 2]' |Set-Json.ps1 /- 3
+'[1, 2]' |Set-Json /- 3
 
 [
   1,
@@ -63,7 +63,7 @@ true
 ]
 
 .EXAMPLE
-'{a:{b:[1,2]}}' |Set-Json.ps1 /a/b/- 3
+'{a:{b:[1,2]}}' |Set-Json /a/b/- 3
 
 {
   "a": {
@@ -76,7 +76,7 @@ true
 }
 
 .EXAMPLE
-'{a:1}' |Set-Json.ps1 /b/ZZ~1ZZ/AD~0BC 7
+'{a:1}' |Set-Json /b/ZZ~1ZZ/AD~0BC 7
 
 {
   "a": 1,
@@ -88,12 +88,11 @@ true
 }
 
 .EXAMPLE
-Set-Json.ps1 /powershell.codeFormatting.preset Allman -Path ./.vscode/settings.json
+Set-Json /powershell.codeFormatting.preset Allman -Path ./.vscode/settings.json
 
 Sets "powershell.codeFormatting.preset": "Allman" within the ./.vscode/settings.json file.
 #>
 
-#Requires -Version 7
 [CmdletBinding()][OutputType([string])] Param(
 <#
 The full path name of the property to set, as a JSON Pointer, which separates each nested
@@ -132,7 +131,7 @@ Process
 		if($property -is [array])
 		{
 			if($i -eq 0 -and $segment -eq '-') {$property = @{}; $object += $property; $segment = $object.Count}
-			if(![int]::TryParse($segment,[ref]$segment)) {Stop-ThrowError.ps1 "Could not use array index $segment" -Argument JsonPointer}
+			if(![int]::TryParse($segment,[ref]$segment)) {throw "Could not use array index $segment"}
 			elseif($property.Count -le $segment) {$property = @{}; $object += $property; $segment = $object.Count}
 			else {$property,$parent = $property[$segment],$property}
 		}
@@ -152,7 +151,7 @@ Process
 	if($property -is [array])
 	{
 		if($segment -eq '-') {if($jsonpath.Length -eq 1) {$object += $PropertyValue} else {$parent.$($jsonpath[-2]) += $PropertyValue}}
-		elseif(![int]::TryParse($segment,[ref]$segment)) {Stop-ThrowError.ps1 "Could not use array index $segment" -Argument JsonPointer}
+		elseif(![int]::TryParse($segment,[ref]$segment)) {throw "Could not use array index $segment"}
 		elseif($property.Count -le $segment) {if($jsonpath.Length -eq 1) {$object += $PropertyValue} else {$parent.$($jsonpath[-2]) += $PropertyValue}}
 		else {$property[$segment] = $PropertyValue}
 	}

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Returns a value from a JSON string or file.
 
@@ -22,46 +22,46 @@ https://www.rfc-editor.org/rfc/rfc6901
 ConvertFrom-Json
 
 .EXAMPLE
-'true' |Select-Json.ps1  # default selection is entire parsed JSON document
+'true' |Select-Json  # default selection is entire parsed JSON document
 
 True
 
 .EXAMPLE
-'{"":3.14}' |Select-Json.ps1 /
+'{"":3.14}' |Select-Json /
 
 3.14
 
 .EXAMPLE
-Select-Json.ps1 /powershell.codeFormatting.preset -Path ./.vscode/settings.json
+Select-Json /powershell.codeFormatting.preset -Path ./.vscode/settings.json
 
 Allman
 
 .EXAMPLE
-'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": 7}}}' |Select-Json.ps1 /b/ZZ~1ZZ
+'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": 7}}}' |Select-Json /b/ZZ~1ZZ
 
 Name  Value
 ----  -----
 AD~BC 7
 
 .EXAMPLE
-'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": 7}}}' |ConvertFrom-Json |Select-Json.ps1 /b/ZZ~1ZZ
+'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": 7}}}' |ConvertFrom-Json |Select-Json /b/ZZ~1ZZ
 
 AD~BC
 -----
     7
 
 .EXAMPLE
-'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": 7}}}' |Select-Json.ps1 /b/ZZ~1ZZ |ConvertTo-Json -Compress
+'{"a":1, "b": {"ZZ/ZZ": {"AD~BC": 7}}}' |Select-Json /b/ZZ~1ZZ |ConvertTo-Json -Compress
 
 {"AD~BC":7}
 
 .EXAMPLE
-'{d:{a:{b:1,c:{"$ref":"#/d/c"}},c:{d:{"$ref":"#/d/two"}},two:2}}' |Select-Json.ps1 /*/a/c/* -FollowReferences
+'{d:{a:{b:1,c:{"$ref":"#/d/c"}},c:{d:{"$ref":"#/d/two"}},two:2}}' |Select-Json /*/a/c/* -FollowReferences
 
 2
 
 .EXAMPLE
-Resolve-Path $env:LOCALAPPDATA/Packages/*WindowsTerminal*/LocalState/settings.json |Get-Item |Get-Content -Raw |Select-Json.ps1 /profiles/list/*/name
+Resolve-Path $env:LOCALAPPDATA/Packages/*WindowsTerminal*/LocalState/settings.json |Get-Item |Get-Content -Raw |Select-Json /profiles/list/*/name
 
 PowerShell
 Windows PowerShell
@@ -76,7 +76,6 @@ Developer Command Prompt for VS 2022
 Developer PowerShell for VS 2022
 #>
 
-#Requires -Version 7
 [CmdletBinding()][OutputType([bool],[long],[double],[string],[Management.Automation.OrderedHashtable])] Param(
 <#
 The full path name of the property to get, as a JSON Pointer,
@@ -114,7 +113,7 @@ Begin
 			{$_.IsFile} {(Get-Content $_.LocalPath -Raw |ConvertFrom-Json -AsHashtable),($_.Fragment -replace '\A*')}
 			default {(Invoke-RestMethod $ReferenceUri),($_.Fragment -replace '\A#')}
 		}
-		return $source |Select-Json.ps1 $pointer
+		return $source |Select-Json $pointer
 	}
 
 	function Select-Segment
@@ -181,13 +180,13 @@ Process
 		return Resolve-Path -Path $Path |
 			Get-Content -Raw |
 			ForEach-Object {$_ |ConvertFrom-Json -AsHashtable |
-				Select-Json.ps1 -JsonPointer $JsonPointer -FollowReferences:$FollowReferences}
+				Select-Json -JsonPointer $JsonPointer -FollowReferences:$FollowReferences}
 	}
 	if($null -eq $InputObject) {return}
 	if($InputObject -is [string])
 	{
 		if($InputObject.StartsWith(([char]0xFEFF))) {$InputObject = $InputObject.Substring(1)}
-		return Select-Json.ps1 -JsonPointer $JsonPointer -FollowReferences:$FollowReferences `
+		return Select-Json -JsonPointer $JsonPointer -FollowReferences:$FollowReferences `
 			-InputObject ($InputObject |ConvertFrom-Json -AsHashtable -NoEnumerate)
 	}
 	if(!$jsonpath.Length) {return $InputObject}
