@@ -3,19 +3,12 @@
 Tests getting a value from a JSON string or file.
 #>
 
-$basename = "$(($MyInvocation.MyCommand.Name -split '\.',2)[0])."
-$skip = !(Test-Path .changes -Type Leaf) ? $false :
-	!@(Get-Content .changes |Get-Item |Select-Object -ExpandProperty Name |Where-Object {$_.StartsWith($basename)})
 if(!(&"$PSScriptRoot/../scripts/Test-RelevantTest.ps1")) {return}
 BeforeAll {
 	Set-StrictMode -Version Latest
 	&"$PSScriptRoot/../scripts/Import-ThisModule.ps1"
 }
 Describe 'Select-Json' -Tag Select-Json -Skip:$skip {
-	BeforeAll {
-		$scriptsdir,$sep = (Split-Path $PSScriptRoot),[io.path]::PathSeparator
-		if($scriptsdir -notin ($env:Path -split $sep)) {$env:Path += "$sep$scriptsdir"}
-	}
 	Context 'Returns a value from a JSON string or file' -Tag SelectJson,Select,Json {
 		It "Selecting '<Pointer>' from '<Json>' returns value '<Result>'" -TestCases @(
 			@{ Json = 'true'; Pointer = ''; Result = $true }
@@ -33,24 +26,27 @@ Describe 'Select-Json' -Tag Select-Json -Skip:$skip {
 			@{ Json = '{list:[{name: true, id: false}]}'; Pointer = '/list/*/name'; Result = $true }
 		) {
 			Param([string] $Json, [string] $Pointer, $Result)
-			$Json |Select-Json.ps1 -JsonPointer $Pointer |Should -BeExactly $Result -Because 'pipeline should work'
-			Select-Json.ps1 -JsonPointer $Pointer -InputObject $Json |Should -BeExactly $Result -Because 'parameter should work'
+			$Json |Select-Json -JsonPointer $Pointer |Should -BeExactly $Result -Because 'pipeline should work'
+			Select-Json -JsonPointer $Pointer -InputObject $Json |Should -BeExactly $Result -Because 'parameter should work'
 		}
 		It "Selecting '<Pointer>' from '<Json>' returns structure '<Result>' (as JSON)" -TestCases @(
 			@{ Json = '{"a":1, "b": {"ZZ/ZZ": {"AD~BC": 7}}}'; Pointer = '/b'; Result = '{"ZZ/ZZ":{"AD~BC":7}}' }
 			@{ Json = '{"a":1, "b": {"[*?/]": {"AD~BC": 7}}}'; Pointer = '/b/~4~3~2~1]'; Result = '{"AD~BC":7}' }
 		) {
 			Param([string] $Json, [string] $Pointer, $Result)
-			$Json |Select-Json.ps1 -JsonPointer $Pointer |ConvertTo-Json -Compress -Depth 100 |Should -BeExactly $Result -Because 'pipeline should work'
-			Select-Json.ps1 -JsonPointer $Pointer -InputObject $Json |ConvertTo-Json -Compress -Depth 100 |Should -BeExactly $Result -Because 'parameter should work'
+			$Json |Select-Json -JsonPointer $Pointer |ConvertTo-Json -Compress -Depth 100 |Should -BeExactly $Result -Because 'pipeline should work'
+			Select-Json -JsonPointer $Pointer -InputObject $Json |ConvertTo-Json -Compress -Depth 100 |Should -BeExactly $Result -Because 'parameter should work'
 		}
 		It "Selecting '<Pointer>' (following references) from '<Json>' returns value '<Result>'" -TestCases @(
 			@{ Json = '{d:{a:{b:1,c:{"$ref":"#/d/c"}},c:{d:{"$ref":"#/d/two"}},two:2}}'; Pointer = '/d/a/c/d'; Result = 2 }
 			@{ Json = '{d:{a:{b:1,c:{"$ref":"#/d/c"}},c:{d:{"$ref":"#/d/two"}},two:2}}'; Pointer = '/*/a/c/*'; Result = 2 }
 		) {
 			Param([string] $Json, [string] $Pointer, $Result)
-			$Json |Select-Json.ps1 -JsonPointer $Pointer -FollowReferences |Should -BeExactly $Result -Because 'pipeline should work'
-			Select-Json.ps1 -JsonPointer $Pointer -InputObject $Json -FollowReferences |Should -BeExactly $Result -Because 'parameter should work'
+			$Json |Select-Json -JsonPointer $Pointer -FollowReferences |Should -BeExactly $Result -Because 'pipeline should work'
+			Select-Json -JsonPointer $Pointer -InputObject $Json -FollowReferences |Should -BeExactly $Result -Because 'parameter should work'
 		}
 	}
+}
+AfterAll {
+	&"$PSScriptRoot/../scripts/Remove-ThisModule.ps1"
 }

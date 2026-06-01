@@ -2,7 +2,7 @@
 Output demo.gif
 Hide
 Set Shell pwsh
-Type "Import-Module ../src/.publish/JSONLab.psd1"
+Type "Import-Module ../.publish/JSONLab.psd1"
 Enter
 Type "Clear-Host"
 Enter

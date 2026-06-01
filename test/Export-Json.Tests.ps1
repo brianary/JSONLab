@@ -3,19 +3,12 @@
 Tests exporting a portion of a JSON document, recursively importing references.
 #>
 
-$basename = "$(($MyInvocation.MyCommand.Name -split '\.',2)[0])."
-$skip = !(Test-Path .changes -Type Leaf) ? $false :
-	!@(Get-Content .changes |Get-Item |Select-Object -ExpandProperty Name |Where-Object {$_.StartsWith($basename)})
 if(!(&"$PSScriptRoot/../scripts/Test-RelevantTest.ps1")) {return}
 BeforeAll {
 	Set-StrictMode -Version Latest
 	&"$PSScriptRoot/../scripts/Import-ThisModule.ps1"
 }
 Describe 'Export-Json' -Tag Export-Json -Skip:$skip {
-	BeforeAll {
-		$scriptsdir,$sep = (Split-Path $PSScriptRoot),[io.path]::PathSeparator
-		if($scriptsdir -notin ($env:Path -split $sep)) {$env:Path += "$sep$scriptsdir"}
-	}
 	Context 'Exports a portion of a JSON document, recursively importing references' `
 		-Tag ExportJson,Export,Json {
 		$NL = [Environment]::NewLine
@@ -26,10 +19,13 @@ Describe 'Export-Json' -Tag Export-Json -Skip:$skip {
 				JsonPointer = '/d/a'; Compress = $true; Result = '{"b":1,"c":{"d":2}}' }
 		) {
 			Param($InputObject, [string] $JsonPointer, [bool] $Compress, [string] $Result)
-			$InputObject |Export-Json.ps1 -JsonPointer $JsonPointer -Compress:$Compress |
+			$InputObject |Export-Json -JsonPointer $JsonPointer -Compress:$Compress |
 				Should -BeExactly $Result -Because 'pipeline should work'
-			Export-Json.ps1 -JsonPointer $JsonPointer -Compress:$Compress -InputObject $InputObject |
+			Export-Json -JsonPointer $JsonPointer -Compress:$Compress -InputObject $InputObject |
 				Should -BeExactly $Result -Because 'parameter should work'
 		}
 	}
+}
+AfterAll {
+	&"$PSScriptRoot/../scripts/Remove-ThisModule.ps1"
 }
