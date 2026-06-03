@@ -43,5 +43,5 @@ Primitive values are overwritten by any matching ones in the new JSON string.
 )
 Begin {$value = [pscustomobject]@{}}
 #TODO: Add or replace dependency.
-Process {$value = $value,($InputObject |ConvertFrom-Json) |Merge-PSObject.ps1}
+Process {$value = $value,($InputObject |ConvertFrom-Json) |Merge-PSObject}
 End {$value  |ConvertTo-Json -Compress:$Compress}
